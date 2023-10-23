@@ -24,7 +24,7 @@ class SlovoDatasetSubset(Subset, SlovoDatasetInterface):
     def __init__(self, dataset: SlovoDatasetInterface, indices: Sequence[int]) -> None:
         super().__init__(dataset, indices)
         subset_labels: List[str] = [dataset[i].label_data.label_name for i in indices]
-        uniq_labels = list(set(subset_labels))
+        uniq_labels = sorted(list(set(subset_labels)))
         self._label_name2id: Dict[str, int] = {
             label: index for index, label in enumerate(uniq_labels)
         }
