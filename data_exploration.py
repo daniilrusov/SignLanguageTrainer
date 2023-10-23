@@ -21,6 +21,10 @@ from dataset.slovo_dataset import (
     SLOVO_ANNOTATIONS_TABLE,
     SlovoDatasetSubset,
 )
+from dataset.mmaction_views import (
+    MMActionVideoDatasetDescription,
+    spawn_txt_and_labels_mapping_for_mmaction_VideoDataset_init,
+)
 from dataset.slovo_ds_sample import SlovoDatasetSample, LabelData
 from dataset.slovo_ds_structure import SlovoDsStructure
 from utils import (
@@ -102,7 +106,7 @@ def create_label_name2id_mappig(table: SLOVO_ANNOTATIONS_TABLE) -> Dict[str, int
     return label2id_mapping
 
 
-def get_gestures_subset(
+def get_labels_subset(
     labels: List[str], base_dataset: SlovoDatasetInterface
 ) -> SlovoDatasetSubset:
     sample: SlovoDatasetSample
@@ -132,7 +136,7 @@ def main():
     pprint(dataset[0])
 
     print("subset info")
-    subset: SlovoDatasetInterface = get_gestures_subset(
+    subset: SlovoDatasetInterface = get_labels_subset(
         base_dataset=dataset, labels=["А", "Б"]
     )
     print(len(subset))
@@ -140,5 +144,43 @@ def main():
     pprint(subset.label_name2id)
 
 
+def prepare_data_for_mmaction_train():
+    ds_structure: SlovoDsStructure = SlovoDsStructure(SLOVO_DATASET_DIR)
+    table = pd.read_csv(
+        ds_structure.annotations_path, on_bad_lines="skip", delimiter="\t"
+    )
+    mapping = create_label_name2id_mappig(table)
+    dataset: SlovoDatasetInterface = SlovoDataset(
+        is_train=False,
+        slovo_ds_structure=ds_structure,
+        read_mediapipe_keypoints=False,
+        label_name2id=mapping,
+    )
+    subset_dataset = get_labels_subset(base_dataset=dataset, labels=["А", "Б"])
+
+    mmaction_dataset_info_root = os.path.join(WS_DIR, "mmaction_datasets")
+    dummy_dir = os.path.join(mmaction_dataset_info_root, "dummy_ds")
+    mmaction_descr_test = MMActionVideoDatasetDescription(
+        files_root=dummy_dir,
+        train_data_root=ds_structure.train_folder,
+        val_data_root=ds_structure.test_folder,
+    )
+    spawn_txt_and_labels_mapping_for_mmaction_VideoDataset_init(
+        slovo_dataset=subset_dataset,
+        mmaction_ds_descr=mmaction_descr_test,
+        is_train=False,
+    )
+    spawn_txt_and_labels_mapping_for_mmaction_VideoDataset_init(
+        slovo_dataset=subset_dataset,
+        mmaction_ds_descr=mmaction_descr_test,
+        is_train=True,
+    )
+
+
 if __name__ == "__main__":
-    main()
+    prepare_data_for_mmaction_train()
+    ds_structure: SlovoDsStructure = SlovoDsStructure(SLOVO_DATASET_DIR)
+    print(ds_structure.train_folder)
+    print(ds_structure.test_folder)
+    path = "E:\\ITMO\\CVProject\\mmaction_ws\\mmaction2\\cv_project_configs\\recognition\\tsn\\..\\..\\configs\\_base_\\default_runtime.py"
+
