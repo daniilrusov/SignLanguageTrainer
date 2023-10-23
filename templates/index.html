@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+  <link href="static/style.css" rel="stylesheet">
+  <script src="static/script.js" type="module"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+
+
+  <h1>Язык жестов</h1>
+
+  <section id="demo">
+    <h2>Демо: тренажер</h2>
+    <p>Нажмите на одну из кнопок ниже, чтоб получить слово.</p>
+    <button id="randomWordButton" class="btn btn-outline-success btn-lg mb-3">Случайное слово</button>
+    <br>
+    <button id="category1Button" class="btn btn-outline-success btn-md mb-3">Категория 1</button>
+    <button id="category2Button" class="btn btn-outline-success btn-md mb-3">Категория 2</button>
+    <br>
+    <button id="word1Button" class="btn btn-outline-success btn-sm">Слово 1</button>
+    <button id="word2Button" class="btn btn-outline-success btn-sm">Слово 2</button>
+    <button id="word3Button" class="btn btn-outline-success btn-sm">Слово 3</button>
+
+    <h2><br>Слово: -------------- <button id="guideButton" class="btn btn-outline-primary ">Инструкция</button></h2>
+    <video id="guideVideo" src="static/videos/агрессия.mp4" width="360" controls></video>
+  </section>
+  <section id="submit">
+    <br><button id="enableCameraButton" class="btn btn-outline-success btn-lg mb-3">Включить камеру</button>
+    <h4>Нажмите на кнопку ниже или Пробел, чтоб записать жест.</h4>
+    <button id="recordButton" class="btn btn-outline-success btn-lg mb-3">Записать</button> <span class="h4">Результат:
+    </span>
+    <br><video id="webCamera" autoplay width="640" height="480" class="border"></video>
+  </section>
+  <script language="javascript" type="text/javascript">
+
+    var word = "------------"
+
+
+
+    let chunks = [];
+
+    function onVideoFail(e) {
+      console.log('webcam fail!', e);
+    };
+
+    function hasGetUserMedia() {
+      // Note: Opera is unprefixed.
+      return !!(navigator.getUserMedia || navigator.webkitGetUserMedia ||
+        navigator.mozGetUserMedia || navigator.msGetUserMedia);
+    }
+
+    if (hasGetUserMedia()) {
+      // Good to go!
+    } else {
+      alert('getUserMedia() is not supported in your browser');
+    }
+
+    window.URL = window.URL || window.webkitURL;
+    navigator.getUserMedia = navigator.getUserMedia ||
+      navigator.webkitGetUserMedia ||
+      navigator.mozGetUserMedia ||
+      navigator.msGetUserMedia;
+
+    var video = document.querySelector('#webCamera');
+    var webcamstream;
+    var streamRecorder;
+    var recording = false;
+
+    if (navigator.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: false, video: true }).then(function (stream) {
+        video.srcObject = stream;
+        webcamstream = stream;
+        streamRecorder = new MediaRecorder(stream);
+
+
+        function Record() {
+          if (recording) {
+            stopRecording();
+          }
+          else {
+            startRecording();
+          }
+        }
+
+        document.getElementById("recordButton").onclick = (e) => {
+          Record();
+        };
+
+        function startRecording() {
+          streamRecorder.start();
+          recording = true;
+        }
+        function stopRecording() {
+          streamRecorder.stop();
+          recording = false
+        }
+
+        streamRecorder.onstop = (e) => {
+          const blob = new Blob(chunks, { type: "video\/mp4" });
+          chunks = [];
+          console.log("recorder stopped");
+          postVideoToServer(blob);
+        };
+
+        streamRecorder.ondataavailable = (e) => {
+          chunks.push(e.data);
+        };
+
+        function postVideoToServer(videoblob) {
+          var data = new FormData();
+          data.append("video", videoblob, "filename" + Date.now() + ".mp4");
+          data.append("word", word);
+          $.ajax({
+            url: "/submit/",
+            type: 'POST',
+            data: data,
+            processData: false,
+            contentType: false,
+            success: function (data) {
+              console.log(data);
+            }
+          });
+        }
+      }).catch(onVideoFail);
+    } else {
+      alert('failed');
+    }
+
+
+  </script>
+</body>
+
+</html>
