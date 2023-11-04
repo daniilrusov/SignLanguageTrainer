@@ -10,7 +10,10 @@ from mmengine.visualization.vis_backend import (
     ClearMLVisBackend,
     force_init_env,
 )
-from typing import List
+from typing import List, Dict
+
+
+BASIC_CLASS_REPORT_KEYS = ["accuracy", "macro avg", "weighted avg"]
 
 
 @VISBACKENDS.register_module()
@@ -26,11 +29,11 @@ class ExtendedClearMLVisBackend(ClearMLVisBackend):
     @force_init_env
     def log_classification_report(
         self,
-        classification_report_data: SCKLEARN_CLASSIFICATION_REPORT_TYPE,
+        classification_report: SCKLEARN_CLASSIFICATION_REPORT_TYPE,
         step: int = 0,
     ):
-        classification_report = classification_report_data["classification_report"]
-        class_names = classification_report_data["class_names"]
+        class_names = set(classification_report.keys()) - set(BASIC_CLASS_REPORT_KEYS)
+        class_names = sorted(list(class_names))
         log_classififcation_report_to_clearml(
             clearml_logger=self._logger,
             classification_report=classification_report,
