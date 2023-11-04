@@ -1,15 +1,23 @@
 import os.path as osp
 
 from typing import Dict, List, Optional, Sequence, Tuple, Union
-
+from pprint import pprint
 import mmcv
 from mmengine.visualization import Visualizer
 from mmaction.registry import VISUALIZERS
 import numpy as np
 from mmengine.dist import master_only
 from mmengine.fileio.io import isdir, isfile, join_path, list_dir_or_file
-from numpy import ndarray
 from ...mmaction_integration.visualization.viz_backend import ExtendedClearMLVisBackend
+from ...mmaction_integration.evaluation.metrics_serialization import (
+    SCKLEARN_CLASSIFICATION_REPORT_TYPE,
+    SklearnClassReportSerializer,
+    SKLEARN_REPORT_PREFIX,
+    SERIALIZATION_SEPARATOR,
+)
+from ...mmaction_integration.evaluation.metrics_utils import (
+    MMActionScalarsDictInteraction,
+)
 from mmaction.structures import ActionDataSample
 
 
@@ -56,25 +64,46 @@ class ClearMLExtendedVisualizer(Visualizer):
             fig_save_cfg=fig_save_cfg,
             fig_show_cfg=fig_show_cfg,
         )
-        self.specific_keys = ["classification_report_data"]
+        self.sklearn_report_serializer: SklearnClassReportSerializer[
+            SCKLEARN_CLASSIFICATION_REPORT_TYPE
+        ] = SklearnClassReportSerializer(separator=SERIALIZATION_SEPARATOR)
 
-    def _handle_classification_report(
-        self, classification_report_data: Dict, step: int = 0
+    def _log_classification_report(
+        self,
+        classification_report: SCKLEARN_CLASSIFICATION_REPORT_TYPE,
+        step: int = 0,
     ) -> None:
-        print("\n\n\nHandling classification report")
+        print(f"\n\n\nLogging report")
+        pprint(classification_report)
         vis_backend: ExtendedClearMLVisBackend
         for vis_backend in self._vis_backends.values():
             if not isinstance(vis_backend, ExtendedClearMLVisBackend):
                 continue
-            vis_backend.log_classification_report(classification_report_data, step=step)
+            vis_backend.log_classification_report(classification_report, step=step)
 
-    def _handle_conf_matrix() -> None:
+    def _log_confusion_matrx(self) -> None:
         pass
+
+    def _handle_classification_report_in_scalars(
+        self, scalar_dict: Dict[str, float], step: int = 0
+    ) -> None:
+        print("\n\n\nHandling classification report")
+        serialzed_report: Dict[
+            str, float
+        ] = MMActionScalarsDictInteraction.extract_compressed_representation_by_prefix(
+            scalar_dict, SKLEARN_REPORT_PREFIX
+        )
+        if not serialzed_report:
+            return
+        classifcation_report: SCKLEARN_CLASSIFICATION_REPORT_TYPE = (
+            self.sklearn_report_serializer.deserialize(serialzed_report)
+        )
+        self._log_classification_report(classifcation_report, step)
 
     @master_only
     def add_scalars(
         self,
-        scalar_dict: dict,
+        scalar_dict: Dict[str, float],
         step: int = 0,
         file_path: Optional[str] = None,
         **kwargs,
@@ -91,20 +120,13 @@ class ClearMLExtendedVisualizer(Visualizer):
                 Defaults to None.
         """
         # handle speciual cases
-        print("\n\n\nCALLING ADD SCALARS of ClearMLExtendedVisualizer")
-        print(scalar_dict.keys())
-        if "acc/classification_report_data" in scalar_dict:
-            classification_report_data: Dict = scalar_dict[
-                "acc/classification_report_data"
-            ]
-            self._handle_classification_report(classification_report_data, step=step)
-        else:
-            print("\n\n\nacc/classification_report_data NOT IN HERE")
-
-        # rm data that requires special handling
-        scalar_dict: Dict = {
-            k: v for k, v in scalar_dict.items() if k not in self.specific_keys
-        }
+        print("=============")
+        pprint("scalar dict keys")
+        pprint(scalar_dict.keys())
+        self._handle_classification_report_in_scalars(scalar_dict, step)
+        MMActionScalarsDictInteraction.purge_metrics_from_prefixed_keys(
+            scalar_dict=scalar_dict, prefixes=[SKLEARN_REPORT_PREFIX]
+        )
         for vis_backend in self._vis_backends.values():
             vis_backend.add_scalars(scalar_dict, step, file_path, **kwargs)
 

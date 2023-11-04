@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
+from typing import Dict, Any
 
 
 def generate_confusion_matrix_plot_from_classification_results(
@@ -34,3 +35,37 @@ def generate_figure_with_conf_matrix(
         plot_axis=ax, gt_classes=y_true, pred_classes=y_pred, class_names=class_names
     )
     return fig
+
+
+class MMActionScalarsDictInteraction:
+    @staticmethod
+    def mark_compressed_representation_by_prefix(
+        compressed_dict: Dict[str, Any], prefix: str
+    ) -> Dict[str, float]:
+        repr_marked_by_prefixes: Dict[str, Any] = {}
+        for key, value in compressed_dict.items():
+            prefixed_key = f"{prefix}{key}"
+            repr_marked_by_prefixes[prefixed_key] = value
+        return repr_marked_by_prefixes
+
+    @staticmethod
+    def extract_compressed_representation_by_prefix(
+        scalars_dict: Dict[str, Any], prefix: str
+    ) -> Dict[str, float]:
+        compressed_dict: Dict[str, float] = {}
+        for k, v in scalars_dict.items():
+            if not k.startswith(prefix):
+                continue
+            k_without_prefix = k.removeprefix(prefix)
+            compressed_dict[k_without_prefix] = v
+        return compressed_dict
+
+    @staticmethod
+    def purge_metrics_from_prefixed_keys(
+        scalar_dict: Dict[str, float], prefixes: List[str]
+    ):
+        keys = list(scalar_dict.keys())
+        for key in keys:
+            if not any([key.startswith(p) for p in prefixes]):
+                continue
+            scalar_dict.pop(key)

@@ -1,15 +1,24 @@
 import json
 from typing import Dict, List
 from pprint import pprint
-from mmaction.evaluation.metrics import AccMetric
 from mmaction.registry import METRICS
 from mmaction.evaluation import get_weighted_score
 from sklearn.metrics import classification_report
+from .metrics_serialization import (
+    SklearnClassReportSerializer,
+    SCKLEARN_CLASSIFICATION_REPORT_TYPE,
+    SERIALIZATION_SEPARATOR,
+    SKLEARN_REPORT_PREFIX,
+)
+from .metrics_utils import MMActionScalarsDictInteraction
 import numpy as np
+from mmaction.evaluation.metrics import AccMetric
 
 
 @METRICS.register_module()
 class F1Metric(AccMetric):
+    default_prefix = ""
+
     def __init__(
         self,
         label2id_mapping_path: str,
@@ -24,6 +33,9 @@ class F1Metric(AccMetric):
             label_id: label for label, label_id in self.label2id.items()
         }
         ids = sorted(list(self.id2labels.keys()))
+        self.sklearn_report_serializer: SklearnClassReportSerializer[
+            SCKLEARN_CLASSIFICATION_REPORT_TYPE
+        ] = SklearnClassReportSerializer(separator=SERIALIZATION_SEPARATOR)
         self.class_names: List[str] = [self.id2labels[id] for id in ids]
 
     def compute_metrics(self, results: List) -> Dict:
@@ -82,13 +94,16 @@ class F1Metric(AccMetric):
                 target_names=self.class_names,
                 output_dict=True,
             )
+            serialized_report = self.sklearn_report_serializer.serialize(report)
+            serialized_report = (
+                MMActionScalarsDictInteraction.mark_compressed_representation_by_prefix(
+                    compressed_dict=serialized_report, prefix=SKLEARN_REPORT_PREFIX
+                )
+            )
             output = {
-                "classification_report_data": {
-                    "classification_report": report,
-                    "class_names": self.class_names,
-                },
                 "weighted_avg_f1_score": report["weighted avg"]["f1-score"],
             }
+            output.update(serialized_report)
             pprint("\n\n\noutput")
             pprint(output)
             return output
