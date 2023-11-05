@@ -8,7 +8,7 @@ from utils import get_all_files_paths_in_dir
 import pandas as pd
 import json
 
-SLOVO_ANNOTATIONS_TABLE = pd.DataFrame
+SLOVO_ANNOTATIONS_TABLE_TYPE = pd.DataFrame
 
 
 class SlovoDatasetInterface(Dataset):
