@@ -33,11 +33,11 @@ class MMActionVideoDatasetDescription:
     ):
         # dump mapping if not already present
         if not os.path.exists(self.labels_mapping_path):
-            with open(self.labels_mapping_path, "w") as f:
-                json.dump(label2id_mapping, f, indent=2)
+            with open(self.labels_mapping_path, "w", encoding="utf-8") as f:
+                json.dump(label2id_mapping, f, indent=2, ensure_ascii=False)
             return
         # if there is already mapping check that new one is consistent
-        with open(self.labels_mapping_path, "r") as f:
+        with open(self.labels_mapping_path, "r", encoding="utf-8") as f:
             existing_mapping: Dict[str, int] = json.load(f)
         if DeepDiff(existing_mapping, label2id_mapping):
             raise ValueError(
