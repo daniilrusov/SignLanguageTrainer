@@ -2,3 +2,20 @@ body {
     padding-left: 10%;
     padding-top: 25px;
 }
+
+#submit {
+    width: max-content;
+}
+
+#resultSpan {
+    margin: 0;
+}
+
+#words-list {
+    width: 30%;
+}
+
+#guideButton {
+    display: block;
+    margin-bottom: 10px;
+}

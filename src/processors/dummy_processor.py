@@ -3,4 +3,4 @@ class DummyProcessor:
         pass
 
     def __call__(self, video_path):
-        return ["dummy"]
+        return "dummy"
