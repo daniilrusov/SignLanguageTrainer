@@ -23,8 +23,8 @@ def index():
 def submit():
     file = request.files['video']
     category = request.values['category']
-    trainer.submit(category, file)
-    return "dummy"
+    label = trainer.submit(category, file)
+    return label
 
 @app.route('/getTask/')
 def getTask():
@@ -35,3 +35,6 @@ def getTask():
 
     task = trainer.generate(word=word, category=category)
     return task._asdict()
+
+if __name__ == "__main__":
+    app.run()

@@ -2,15 +2,15 @@
 <html lang="en">
 
 <head>
-  <!-- Required meta tags -->
+  <title>Тренажер языка жестов</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
   <link href="static/style.css" rel="stylesheet">
   <script src="static/script.js" type="text/javascript" defer></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
 </head>
 
 <body>
@@ -19,11 +19,16 @@
 
   <section id="demo">
     <h2>Демо: тренажер</h2>
-    <p>Нажмите на одну из кнопок ниже, чтоб получить слово.</p>
+    <h4> Прогресс</h4>
+    <div class="progress">
+      <div class="progress-bar" role="progressbar" style="width: 0%;"></div>
+    </div>
+    <br>
+    <h4>Нажмите на одну из кнопок ниже, чтоб получить слово.</h4>
     <button id="randomWordButton" class="btn btn-outline-success btn-lg mb-3" onclick="getRandom()">Случайное слово</button>
     <br>
     {% for category in categories %}
-    <button class="btn btn-outline-success btn-md mb-3" onclick="getCategory(this)" id="{{category}}" style="display: none;">{{category}}</button>
+    <button class="btn btn-outline-success btn-md mb-3" onclick="getCategory(this)" id="{{category}}">{{category}}</button>
     {% endfor %}
     <br>
     <div id="words-list" class="list-group">
@@ -31,7 +36,7 @@
         Список слов
       </button>
       {% for word in words %}
-      <button type="button" class="list-group-item list-group-item-action word-list" onclick="getWord(this)" id="{{word.word}}">{{word.word}}</button>
+      <button type="button" class="list-group-item list-group-item-action word-list " onclick="getWord(this)" id="{{word.word}}" style="display: none;">{{word.word}}</button>
       {% endfor %} 
     </div>
     <br/>
@@ -47,6 +52,9 @@
     </div>
     <br>
     <video id="webCamera" autoplay width="640" height="480" class="border"></video>
+  </section>
+  <section id="alerts">
+
   </section>
 </body>
 

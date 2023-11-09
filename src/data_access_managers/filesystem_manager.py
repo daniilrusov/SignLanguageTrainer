@@ -12,6 +12,6 @@ class FileSystemManager:
         file.save(full_path)
         return full_path
     
-    def get(self, filename):
-        # load video from filesystem
-        pass 
+    def delete(self, path):
+        if os.path.exists(path):
+            os.remove(path)

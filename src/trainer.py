@@ -14,6 +14,7 @@ class Trainer:
     def submit(self, category, form_file):
         path = self.data_manager.save(form_file)
         label = self.processor(path)
+        self.data_manager.delete(path)
         return label
 
     def generate(self, category=None, word=None):

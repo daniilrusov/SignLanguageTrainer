@@ -1,7 +1,12 @@
 
 var word_current = "------------";
 var category_current = "----------";
-    
+
+var total_words = document.getElementById("words-list").childElementCount - 1;
+var guessed_words = 0;
+var guessed_streak = 0;
+var total_tries = 0;
+var total_guesses = 0;
 
 let chunks = [];
 
@@ -98,12 +103,41 @@ if (navigator.getUserMedia) {
         success: function (data) {
           console.log(data);
           document.getElementById("resultSpan").innerText = "Распознано: " + data;
+          total_tries++;
+          if (data == word_current) {
+            console.log("correct");
+            guessed_streak++;
+            total_guesses++;
+            showAlert(`Правильный жест! Уже ${guessed_streak} жестов подряд!\nТочность - ${Math.round(total_guesses / total_tries * 100)}%.`, "alert-success");
+            if ($("#" + word_current).hasClass("list-group-item-success")) {
+                
+            }
+            else {
+              guessed_words++;
+              $("#" + word_current).addClass("list-group-item-success");
+              $('.progress-bar').css('width', guessed_words / total_words * 100 + '%');
+              $('.progress-bar').text(Math.round(guessed_words / total_words * 100) + '%');
+              console.log(guessed_words / total_words);
+            }
+          }
+          else {
+            guessed_streak = 0;
+            showAlert(`Неправильно!\nТочность - ${Math.round(total_guesses / total_tries * 100)}%.`, "alert-danger");
+          }
         }
       });
     }
   }).catch(onVideoFail);
 } else {
   alert('failed');
+}
+
+function showAlert(text, type) {
+  var alerts = document.querySelector('#alerts');
+  var alert = document.createElement('div');
+      alert.className = 'alert alert-dismissible ' + type;
+      alert.innerHTML = `<h4>${text}</h4><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>`;
+      alerts.appendChild(alert);
 }
 
 
@@ -147,8 +181,7 @@ function getTask(word=null, category=null) {
       category_current = response.category;
       $('#taskWord').contents().first().replaceWith('Слово: ' + word_current);
       $('#guideVideo').attr('src', response.guide_path);
-      $('#guideVideo').load();
-      console.log(word);
+      //$('#guideVideo').load();
     },
     error: function(xhr) {
       //Do Something to handle error

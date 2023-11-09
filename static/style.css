@@ -19,3 +19,15 @@ body {
     display: block;
     margin-bottom: 10px;
 }
+
+#alerts {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 500;
+}
+
+.progress {
+    width: 30%;
+    height: 30px;
+}
