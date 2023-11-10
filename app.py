@@ -1,6 +1,4 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
-import cv2
-import os
 from src.trainer import Trainer
 
 UPLOAD_PATH = 'uploads_folder'
@@ -21,9 +19,19 @@ def index():
 
 @app.route('/submit/', methods=['POST'])
 def submit():
-    file = request.files['video']
-    category = request.values['category']
-    label = trainer.submit(category, file)
+    request_json = request.get_json()
+    #print(request_json)
+    images = request_json['images']
+    duration = request_json['duration']
+    category = request_json['category']
+
+    #file = request.form.getlist('images[]')
+    #duration = request.values['duration']
+    print(len(images))
+    print(duration)
+    #category = request.values['category']
+    label = trainer.submit(category, images)
+    #label = "asdasd"
     return label
 
 @app.route('/getTask/')
@@ -37,4 +45,4 @@ def getTask():
     return task._asdict()
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host='0.0.0.0')
