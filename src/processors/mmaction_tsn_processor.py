@@ -5,9 +5,10 @@ from typing import Dict
 from mmaction.structures.action_data_sample import ActionDataSample
 from mmaction.apis import inference_recognizer, init_recognizer
 import torch
+from .processor import Processor
 
 
-class MmactionTSNProcessor:
+class MmactionTSNProcessor(Processor):
     def __init__(
         self,
         config_path: str,
