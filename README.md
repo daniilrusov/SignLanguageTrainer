@@ -36,6 +36,6 @@
 Запуск осуществляется при помощи docker:
 
 ```bash
-docker build —rm -t signlanguage .
-docker run —rm -p 5000:5000 signlanguage
+docker build --rm -t signlanguage .
+docker run --rm -p 5000:5000 signlanguage
 ```
