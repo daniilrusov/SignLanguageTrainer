@@ -3,6 +3,7 @@
 Задача - сделать инструмент, который позволит слабослышащим людям и людям без отклонений слуха самообучаться жестовому языку.
 
 ## Архитектура решения
+
 Основная схема приложения показана на диаграмме:
 
 ![Диаграмма](images/diagram.jpg)
@@ -19,17 +20,113 @@
 
 ## Данные
 
+В данном проекте использовался датасет Slovo 
+https://github.com/hukenovs/slovo
+
+Датасет зафиксирован в ClearML, ниже пример кода для получения локальной копии датасета   
+
+```python
+dataset = Dataset.get(
+    dataset_name="Slovo",
+    dataset_project="CVProject",
+)
+local_copy_path = dataset.get_local_copy()
+```
+
+Для работы с данными были написаны классы, представленные на изображении
+
+![Диаграмма](images/data_uml.png)
+
+**SlovoDsInterface** - расширение базового интерфейса torch Dataset своством label_name2id, которое содержит маппинг лейблов 
+
+**SLovoDatasetStructure** - датакласс для упрощения парсинга данных датасета
+
+**LabelData** - датакласс для хранения информации о лейбле 
+
+**SlovoDatasetSample** - датакласс для хранения информации о семпле датасета Slovo
+
+**SlovoDataset** - датасет для работы с данными Slovo
+
+**SlovoDatasetSubset** - расширение torch Subset для вида с сабсетом  лейблов 
+
+**SlovoDatasetConcat** - расширение torch ConcatDataset для конкатенации датесетов реализующих SlovoDatasetInterface
+
 
 ## Распознавание жестов
 
 ### MMAction + TSN
 
+#### Установка mmaction
+
+Установите mmaction по инструкции из репозитория
+https://mmaction2.readthedocs.io/en/latest/get_started/installation.html
+
+layout репозитория должен выглядеть примерно так:
+
+```
+project
+│
+└───SignLanguageTrainer
+│   
+└───mmaction2
+```
+
+#### Подготовка данных для обучения TSN
+
+Для обучения TSN необходимо подготовить данные в формате, совместимом с mmaction, для этого необходимо сгенерировать 2 текстовых файла где каждая строка представлена в формате 
+
+*имя_видео* *индекс_класса* 
+
+Пример:
+```
+01094286-9e5f-4737-a308-8a4a0e5bdfad.mp4 5
+02938cc9-a52e-4c1c-b375-2c1d5bff5a94.mp4 4
+02a8f308-ec67-40f7-9f4b-4149707825df.mp4 1
+035ccc50-c4aa-4592-a305-4c1c9910f4e4.mp4 3
+```
+
+Для генерации данных в этом формате используется функция 
+
+```
+prepare_data_for_MMAction_training_on_labels_package
+```
+
+из *SignLanguageTrainer\train_data_prep.py*
+
+
+#### Интеграция с SignLanguageTrainer
+
+Для подсчета метрик и логирования в ClearML были реализованы классы для логирования в ClearML и подсчета кастомных метрик, пакет 
+
+```
+mmaction_integration
+```
+
+#### Подготовка конфига
+В конфиг необходимо ввести информацию о сгенерированных данных и кастомных интеграциях с mmaction.
+
+Пример, инициализации кастомных классов в конфиге:
+
+```
+val_evaluator = dict(
+    type="F1Metric",
+    label2id_mapping_path="path/to/label2id_mapping.json",
+)
+
+vis_backends = [
+    # dict(type="LocalVisBackend"),
+    dict(
+        type="ExtendedClearMLVisBackend",
+        init_kwargs=dict(project_name="CVProject", task_name="train_animals_package"),
+    ),
+]
+visualizer = dict(type="ClearMLExtendedVisualizer", vis_backends=vis_backends)
+```
+
 
 ### Mediapipe + DTW + kNN
 
-
 ### OpenPose+LSTM
-
 
 ## Запуск демо
 
