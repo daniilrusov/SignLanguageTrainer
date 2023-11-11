@@ -38,7 +38,7 @@ def inference_example():
     tsn_assets_root = join(
         repo_root,
         "assets",
-        "tsn_inference_example_data",
+        "tsn_animals",
     )
     cfg_path: str = join(
         tsn_assets_root,
