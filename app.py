@@ -1,8 +1,21 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
 from src.trainer import Trainer
+import os
 
 UPLOAD_PATH = 'uploads_folder'
 WORDS_CSV = r'words.csv'
+
+"""
+ACCESS_KEY = os.environ.get("MINIO_ROOT_USER")
+SECRET_KEY = os.environ.get("MINIO_ROOT_PASSWORD")
+BUCKET_NAME = os.environ.get("MINIO_BUCKET")
+MINIO_API_HOST = os.environ.get("MINIO_ENDPOINT")
+
+upload_config= {"MINIO_API_HOST": MINIO_API_HOST, 
+                "ACCESS_KEY": ACCESS_KEY,
+                "SECRET_KEY": SECRET_KEY,
+                "BUCKET_NAME": BUCKET_NAME}
+"""
 
 upload_config = {'folder': UPLOAD_PATH}
 
