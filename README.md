@@ -51,6 +51,12 @@ local_copy_path = dataset.get_local_copy()
 
 **SlovoDatasetConcat** - расширение torch ConcatDataset для конкатенации датесетов реализующих SlovoDatasetInterface
 
+### Генерация дополнительных данных 
+
+В рамках работы над проектом был проработан кейс генерации и разметки новых данных, для этого была написана инструкция для разметки в системе CVAT 
+https://www.cvat.ai/
+
+[Файл с инструкцией](assets/CVATLabellinginstructions.pdf)
 
 ## Распознавание жестов
 
